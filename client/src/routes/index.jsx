@@ -3,6 +3,8 @@ import LoginPage from '../pages/loginPage/LoginPage';
 import UserLayout from '../layouts/UserLayout';
 import ProdukPage from '../pages/dashboard/produk/ProdukPage';
 import PenjualanPage from '../pages/dashboard/penjualan/PenjualanPage';
+import PelangganPage from '../pages/dashboard/pelanggan/PelangganPage';
+import DashboardPage from '../pages/dashboard/index/DashboardPage';
 
 const router = createBrowserRouter([
     {
@@ -15,7 +17,7 @@ const router = createBrowserRouter([
         children: [
             {
                 path: '',
-                element: <div>dashboard</div>,
+                element: <DashboardPage />,
             },
             {
                 path: 'produk',
@@ -27,7 +29,7 @@ const router = createBrowserRouter([
             },
             {
                 path: 'pelanggan',
-                element: <div>pelanggan</div>,
+                element: <PelangganPage />,
             },
         ],
     },
