@@ -9,7 +9,7 @@ class Pelanggan extends Model
 {
     use HasFactory;
     protected $table = "pelanggan";
-    protected $primaryKey = 'PelangganID';
+    protected $primaryKey = "PelangganID";
     public $incrementing = true;
 
     protected $fillable = [

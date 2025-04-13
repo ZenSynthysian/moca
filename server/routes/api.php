@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
@@ -32,4 +33,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pelanggan/store', [PelangganController::class, 'store']);
     Route::put('/pelanggan/update', [PelangganController::class, 'update']);
     Route::delete('/pelanggan/delete', [PelangganController::class, 'delete']);
+
+    // penjualan Routes
+    Route::get('/penjualan/showall', [PenjualanController::class, 'showAll']);
+    Route::post('/penjualan/showone', [PenjualanController::class, 'showOne']);
+    Route::post('/penjualan/store', [PenjualanController::class, 'store']);
+    Route::put('/penjualan/update', [PenjualanController::class, 'update']);
+    Route::delete('/penjualan/delete', [PenjualanController::class, 'delete']);
 });
