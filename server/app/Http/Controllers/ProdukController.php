@@ -30,10 +30,11 @@ class ProdukController extends Controller
     public function showOne(ReadRequest $request)
     {
         $validated = $request->validated();
-        $produk = $validated['NamaProduk'];
-        $produk = Produk::where('NamaProduk', $produk)->first();
+        $keyword = $validated['NamaProduk'];
 
-        if (!$produk) {
+        $produks = Produk::where('NamaProduk', 'LIKE', '%' . $keyword . '%')->get();
+
+        if ($produks->isEmpty()) {
             return response()->json([
                 'status' => 'fail',
                 'message' => 'Data tidak ditemukan'
@@ -42,9 +43,10 @@ class ProdukController extends Controller
 
         return response()->json([
             'status' => 'ok',
-            'data' => $produk
+            'data' => $produks
         ], 200);
     }
+
 
     public function store(StoreRequest $request)
     {
@@ -70,7 +72,7 @@ class ProdukController extends Controller
     public function update(UpdateRequest $request)
     {
         $validated = $request->validated();
-        $produk = Produk::where('NamaProduk', $validated['NamaProdukBefore'])->first();
+        $produk = Produk::where('ProdukID', $validated['ProdukID'])->first();
         if (!$produk) {
             return response()->json([
                 'status' => 'fail',
@@ -79,7 +81,7 @@ class ProdukController extends Controller
         }
 
         $produk->update([
-            'NamaProduk' => $validated['NamaProdukAfter'] ?? $produk->NamaProduk,
+            'NamaProduk' => $validated['NamaProduk'] ?? $produk->NamaProduk,
             'Harga' => $validated['Harga'] ?? $produk->Harga,
             'Stok' => $validated['Stok'] ?? $produk->Stok,
         ]);
@@ -93,7 +95,7 @@ class ProdukController extends Controller
     public function delete(RemoveRequest $request)
     {
         $validated = $request->validated();
-        $produk = Produk::where('NamaProduk', $validated['NamaProduk'])->first();
+        $produk = Produk::where('ProdukID', $validated['ProdukID'])->first();
         if (!$produk) {
             return response()->json([
                 'status' => 'fail',

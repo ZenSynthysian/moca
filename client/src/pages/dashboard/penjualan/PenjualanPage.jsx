@@ -149,7 +149,7 @@ function PenjualanPage() {
                             <div
                                 onClick={handleHistory}
                                 className="p-1 border-2 border-moca1 hover:bg-moca3 transition-all duration-150 rounded-2xl">
-                                <div className="text-center">history</div>
+                                <div className="text-center">Kembali</div>
                             </div>
                         </div>
                         <div className="w-full flex-wrap border-2 flex flex-row justify-center gap-10 p-3 border-moca1 rounded">

@@ -1,7 +1,19 @@
 import LinkComponents from '../components/LinkComponents';
 import { Outlet } from 'react-router-dom';
-
+import { UserContext } from '../contexts/UserContexts';
+import { useContext } from 'react';
+import axios from 'axios';
 function UserLayout() {
+    const { userProfile } = useContext(UserContext);
+    function handleLogout() {
+        localStorage.removeItem('token');
+        try {
+            axios.get(`${import.meta.env.VITE_API_URL}/users/logout`);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     return (
         <>
             {/* navbar */}
@@ -25,10 +37,11 @@ function UserLayout() {
                     />
                 </div>
                 <div className="flex flex-row gap-10 items-center">
-                    <div>User</div>
+                    <div>{userProfile?.name}</div>
                     <form>
                         <button
                             type="submit"
+                            onClick={handleLogout}
                             className="text-moca1 px-6 py-2 rounded-xl border-b-[2px] border-[#C14600] transition duration-300 hover:bg-[#C14600] hover:text-[#FEF9E1] hover:shadow-lg active:scale-95">
                             Logout
                         </button>

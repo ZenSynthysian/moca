@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import propTypes from 'prop-types';
 
-function InputComponents({ name, type, placeholder, value }) {
+function InputComponents({ name, type, placeholder, value, onChange }) {
     const [focusedInput, setFocusedInput] = useState(null);
 
     return (
@@ -16,6 +16,7 @@ function InputComponents({ name, type, placeholder, value }) {
             <input
                 type={type}
                 placeholder={placeholder}
+                onChange={onChange}
                 name={name}
                 value={value}
                 className="relative z-10 w-full bg-transparent text-center text-white border-b-2 border-white outline-none py-2"
@@ -32,4 +33,5 @@ InputComponents.propTypes = {
     type: propTypes.string.isRequired,
     placeholder: propTypes.string,
     value: propTypes.string,
+    onChange: propTypes.string,
 };

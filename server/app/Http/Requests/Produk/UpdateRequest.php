@@ -22,8 +22,8 @@ class UpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'NamaProdukBefore' => 'required|string|max:255',
-            'NamaProdukAfter' => 'nullable|string|max:255',
+            'ProdukID' => 'required|integer',
+            'NamaProduk' => 'nullable|string|max:255',
             'Harga' => 'nullable|integer|min:0',
             'Stok' => 'nullable|integer|min:0'
         ];

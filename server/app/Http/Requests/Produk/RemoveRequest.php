@@ -22,7 +22,7 @@ class RemoveRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'NamaProduk' => 'required|string|max:255',
+            'ProdukID' => 'required|integer|exists:produk,ProdukID',
         ];
     }
 }

@@ -5,6 +5,7 @@ import ProdukPage from '../pages/dashboard/produk/ProdukPage';
 import PenjualanPage from '../pages/dashboard/penjualan/PenjualanPage';
 import PelangganPage from '../pages/dashboard/pelanggan/PelangganPage';
 import DashboardPage from '../pages/dashboard/index/DashboardPage';
+import PrivateRoute from '../components/PrivateRoute';
 
 const router = createBrowserRouter([
     {
@@ -13,23 +14,28 @@ const router = createBrowserRouter([
     },
     {
         path: '/dashboard',
-        element: <UserLayout />,
+        element: <PrivateRoute />,
         children: [
             {
-                path: '',
-                element: <DashboardPage />,
-            },
-            {
-                path: 'produk',
-                element: <ProdukPage />,
-            },
-            {
-                path: 'penjualan',
-                element: <PenjualanPage />,
-            },
-            {
-                path: 'pelanggan',
-                element: <PelangganPage />,
+                element: <UserLayout />,
+                children: [
+                    {
+                        path: '',
+                        element: <DashboardPage />,
+                    },
+                    {
+                        path: 'produk',
+                        element: <ProdukPage />,
+                    },
+                    {
+                        path: 'penjualan',
+                        element: <PenjualanPage />,
+                    },
+                    {
+                        path: 'pelanggan',
+                        element: <PelangganPage />,
+                    },
+                ],
             },
         ],
     },
