@@ -22,6 +22,7 @@ function InputComponents({ name, type, placeholder, value, onChange }) {
                 className="relative z-10 w-full bg-transparent text-center text-white border-b-2 border-white outline-none py-2"
                 onFocus={() => setFocusedInput(name)}
                 onBlur={() => setFocusedInput(null)}
+                required
             />
         </div>
     );

@@ -30,9 +30,11 @@ class PelangganController extends Controller
     public function showOne(ReadRequest $request)
     {
         $validated = $request->validated();
-        $pelanggan = Pelanggan::where('NamaPelanggan', $validated['NamaPelanggan'])->first();
+        $keyword = $validated['NamaPelanggan'];
 
-        if (!$pelanggan) {
+        $pelanggan = Pelanggan::where('NamaPelanggan', 'LIKE', '%' . $keyword . '%')->get();
+
+        if ($pelanggan->isEmpty()) {
             return response()->json([
                 'status' => 'fail',
                 'message' => 'Data tidak ditemukan'
@@ -47,23 +49,30 @@ class PelangganController extends Controller
 
     public function store(StoreRequest $request)
     {
-        $validated = $request->validated();
-        $pelanggan = Pelanggan::create([
-            'NamaPelanggan' => $validated['NamaPelanggan'],
-            'Alamat' => $validated['Alamat'],
-            'NomorTelepon' => $validated['NomorTelepon'],
-        ]);
-        if (!$pelanggan) {
+        try {
+            $validated = $request->validated();
+            $pelanggan = Pelanggan::create([
+                'NamaPelanggan' => $validated['NamaPelanggan'],
+                'Alamat' => $validated['Alamat'],
+                'NomorTelepon' => $validated['NomorTelepon'],
+            ]);
+            if (!$pelanggan) {
+                return response()->json([
+                    'status' => 'fail',
+                    'message' => 'Data gagal disimpan'
+                ], 500);
+            }
+
+            return response()->json([
+                'status' => 'ok',
+                'data' => $pelanggan
+            ], 201);
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 'fail',
-                'message' => 'Data gagal disimpan'
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
         }
-
-        return response()->json([
-            'status' => 'ok',
-            'data' => $pelanggan
-        ], 201);
     }
 
     public function update(UpdateRequest $request)
