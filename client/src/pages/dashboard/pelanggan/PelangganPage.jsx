@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import InputComponents from '../../../components/InputComponents';
-import LinkComponents from '../../../components/LinkComponents';
 import axios from 'axios';
 import reset from '../../../assets/reset.svg';
 

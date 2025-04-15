@@ -8,34 +8,46 @@ use App\Models\DetailPenjualan;
 use App\Models\Penjualan;
 use App\Http\Requests\Penjualan\StoreRequest;
 use App\Http\Requests\Penjualan\UpdateRequest;
+use App\Http\Requests\ReadOneToManyRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class PenjualanController extends Controller
 {
-    public function showAll()
+    public function showAll(Request $request)
     {
-        $penjualan = DetailPenjualan::all();
-        if ($penjualan->isEmpty()) {
-            return response()->json(
-                [
-                    'status' => 'fail',
-                    'message' => 'Data Penjualan tidak ditemukan'
-                ],
-                404
-            );
-        }
+        $perPage = $request->input('perPage', 10);
+        $page = $request->input('page', 1);
+
+        // Subquery untuk ambil DetailID terbaru per PenjualanID
+        $subQuery = DetailPenjualan::select('PenjualanID', DB::raw('MAX(DetailID) as latest_detail_id'))
+            ->groupBy('PenjualanID');
+
+        // Query utama dengan join ke subquery
+        $query = DetailPenjualan::query()
+            ->joinSub($subQuery, 'latest_details', function ($join) {
+                $join->on('detailpenjualan.DetailID', '=', 'latest_details.latest_detail_id');
+            })
+            ->with(['penjualan.pelanggan', 'user', 'produk']);
+
+        $penjualan = $query->paginate($perPage, ['*'], 'page', $page);
 
         return response()->json([
             'status' => 'ok',
-            'data' => $penjualan
+            'data' => $penjualan->items(),
+            'pagination' => [
+                'total' => $penjualan->total(),
+                'perPage' => $penjualan->perPage(),
+                'currentPage' => $penjualan->currentPage(),
+                'lastPage' => $penjualan->lastPage(),
+            ]
         ]);
     }
 
     public function showOne(ReadRequest $request)
     {
         $validated = $request->validated();
-        $penjualan = DetailPenjualan::where('DetailID', $validated['DetailID'])->first();
+        $penjualan = DetailPenjualan::where('NamaPelanggan', $validated['NamaPelanggan'])->first();
         if (!$penjualan) {
             return response()->json(
                 [
@@ -52,6 +64,76 @@ class PenjualanController extends Controller
         ]);
     }
 
+    public function showOneToMany(ReadOneToManyRequest $request)
+    {
+        $validated = $request->validated();
+        $penjualan = DetailPenjualan::where('PenjualanID', $validated['PenjualanID'])->with(['produk', 'penjualan.pelanggan'])->get();
+        if ($penjualan->isEmpty()) {
+            return response()->json([
+                'status' => 'fail',
+                'message' => 'Data Penjualan tidak ditemukan'
+            ], 404);
+        }
+        return response()->json([
+            'status' => 'ok',
+            'data' => $penjualan
+        ]);
+    }
+
+    public function search(Request $request)
+    {
+        $request->validate([
+            'search' => 'sometimes|string',
+            'page' => 'sometimes|integer|min:1',
+            'perPage' => 'sometimes|integer|min:1'
+        ]);
+
+        $searchTerm = $request->input('search');
+        $perPage = $request->input('perPage', 10);
+        $page = $request->input('page', 1);
+
+        // Subquery untuk ambil DetailID terbaru per PenjualanID
+        $subQuery = DetailPenjualan::select(
+            'PenjualanID',
+            DB::raw('MAX(DetailID) as latest_detail_id')
+        )->groupBy('PenjualanID');
+
+        // Query utama dengan join ke subquery
+        $query = DetailPenjualan::query()
+            ->joinSub(
+                $subQuery,
+                'latest_details',
+                function ($join) {
+                    $join->on('detailpenjualan.DetailID', '=', 'latest_details.latest_detail_id')
+                        ->on('detailpenjualan.PenjualanID', '=', 'latest_details.PenjualanID'); // Tambahkan ini
+                }
+            )
+            ->with(['penjualan.pelanggan', 'user', 'produk']);
+
+        if ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereHas('penjualan.pelanggan', function ($subQ) use ($searchTerm) {
+                    $subQ->where('NamaPelanggan', 'like', "%{$searchTerm}%");
+                })
+                    ->orWhere('detailpenjualan.PenjualanID', 'like', "%{$searchTerm}%"); // Specify table
+            });
+        }
+
+        $results = $query->orderBy('detailpenjualan.created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'data' => $results->items(),
+            'pagination' => [
+                'total' => $results->total(),
+                'perPage' => $results->perPage(),
+                'currentPage' => $results->currentPage(),
+                'lastPage' => $results->lastPage(),
+            ],
+            'message' => 'Search results'
+        ]);
+    }
+
     public function store(StoreRequest $request)
     {
         $validated = $request->validated();
@@ -61,7 +143,7 @@ class PenjualanController extends Controller
             $penjualan = Penjualan::create([
                 'TanggalPenjualan' => $validated['TanggalPenjualan'],
                 'TotalHarga' => $validated['TotalHarga'],
-                'PelangganID' => $validated['PelangganID'],
+                'PelangganID' => $validated['PelangganID'] ?? 8,
             ]);
 
             $penjualan->detailPenjualan()->createMany(array_map(function ($detail) {
@@ -99,7 +181,7 @@ class PenjualanController extends Controller
 
             // Update data penjualan
             $penjualan->update([
-                'TanggalPenjualan' => $validated['TanggalPenjualan'],
+                'TanggalPenjualan' => $validated['TanggalPenjualan'] = \Carbon\Carbon::parse($validated['TanggalPenjualan'])->format('Y-m-d H:i:s'),
                 'TotalHarga'       => $validated['TotalHarga'],
                 'PelangganID'      => $validated['PelangganID'],
             ]);
@@ -150,15 +232,14 @@ class PenjualanController extends Controller
     public function delete(RemoveRequest $request)
     {
         $validated = $request->validated();
-        $penjualan = Penjualan::find($validated['PenjualanID']);
-        if (!$penjualan) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Penjualan tidak ditemukan.'
-            ], 404);
-        }
 
+        // Hapus semua detail penjualan terlebih dahulu
+        DetailPenjualan::where('PenjualanID', $validated['PenjualanID'])->delete();
+
+        // Hapus penjualan
+        $penjualan = Penjualan::find($validated['PenjualanID']);
         $penjualan->delete();
+
         return response()->json([
             'status' => 'ok',
             'message' => 'Penjualan berhasil dihapus.'

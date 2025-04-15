@@ -36,4 +36,9 @@ class DetailPenjualan extends Model
     {
         return $this->belongsTo(User::class, 'UserID', 'id');
     }
+
+    public function pelanggan()
+    {
+        return $this->belongsTo(Pelanggan::class, 'PelangganID', 'PelangganID');
+    }
 }

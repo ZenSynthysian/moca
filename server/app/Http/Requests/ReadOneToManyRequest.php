@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Penjualan;
+namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ReadRequest extends FormRequest
+class ReadOneToManyRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,9 +22,7 @@ class ReadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'search' => 'nullable|string',
-            'perPage' => 'nullable|integer|min:1',
-            'page' => 'nullable|integer|min:1'
+            'PenjualanID' => 'required'
         ];
     }
 }

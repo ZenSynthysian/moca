@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // produk routes
     Route::get('/products/showall', [ProdukController::class, 'showAll']);
     Route::post('/products/showone', [ProdukController::class, 'showOne']);
+    Route::post('/products/search', [ProdukController::class, 'search']);
     Route::post('/products/store', [ProdukController::class, 'store']);
     Route::put('/products/update', [ProdukController::class, 'update']);
     Route::delete('/products/delete', [ProdukController::class, 'delete']);
@@ -36,7 +37,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // penjualan Routes
     Route::get('/penjualan/showall', [PenjualanController::class, 'showAll']);
+    Route::post('/penjualan/search', [PenjualanController::class, 'search']);
     Route::post('/penjualan/showone', [PenjualanController::class, 'showOne']);
+    Route::post('/penjualan/showonetomany', [PenjualanController::class, 'showOneToMany']);
     Route::post('/penjualan/store', [PenjualanController::class, 'store']);
     Route::put('/penjualan/update', [PenjualanController::class, 'update']);
     Route::delete('/penjualan/delete', [PenjualanController::class, 'delete']);

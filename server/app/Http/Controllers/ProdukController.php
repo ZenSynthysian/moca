@@ -7,6 +7,7 @@ use App\Http\Requests\Produk\RemoveRequest;
 use App\Http\Requests\Produk\StoreRequest;
 use App\Http\Requests\Produk\UpdateRequest;
 use App\Models\Produk;
+use Illuminate\Http\Request;
 
 class ProdukController extends Controller
 {
@@ -46,6 +47,40 @@ class ProdukController extends Controller
             'data' => $produks
         ], 200);
     }
+
+    public function search(Request $request)
+    {
+        $request->validate([
+            'search' => 'sometimes|string',
+            'page' => 'sometimes|integer|min:1',
+            'perPage' => 'sometimes|integer|min:1'
+        ]);
+
+        $search = $request->input('search');
+        $perPage = $request->input('perPage', 10);
+        $page = $request->input('page', 1);
+
+        $query = Produk::query();
+
+        if ($search) {
+            $query->where('NamaProduk', 'like', "%{$search}%")
+                ->orWhere('ProdukID', 'like', "%{$search}%");
+        }
+
+        $results = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'data' => $results->items(),
+            'pagination' => [
+                'total' => $results->total(),
+                'perPage' => $results->perPage(),
+                'currentPage' => $results->currentPage(),
+                'lastPage' => $results->lastPage(),
+            ],
+            'message' => 'Search results'
+        ]);
+    }
+
 
 
     public function store(StoreRequest $request)

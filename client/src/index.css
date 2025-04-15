@@ -74,3 +74,27 @@ button:focus-visible {
     --color-moca3: #e5d0ac;
     --color-moca4: #fef9e1;
 }
+/* Custom Scrollbar untuk WebKit (Chrome, Safari) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #fef9e1; /* Warna track sesuai tema Mocha */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c14600; /* Warna thumb orange */
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a33800; /* Warna hover */
+}
+
+/* Untuk Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #c14600 #fef9e1;
+}

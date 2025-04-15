@@ -39,7 +39,6 @@ function ProdukPage() {
         };
         fetchProduk();
     }, [refreshProduct]);
-    console.log(products);
 
     useEffect(() => {
         if (selectedId !== null) {
