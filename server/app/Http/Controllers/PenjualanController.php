@@ -6,6 +6,7 @@ use App\Http\Requests\Penjualan\ReadRequest;
 use App\Http\Requests\Penjualan\RemoveRequest;
 use App\Models\DetailPenjualan;
 use App\Models\Penjualan;
+use App\Models\Produk;
 use App\Http\Requests\Penjualan\StoreRequest;
 use App\Http\Requests\Penjualan\UpdateRequest;
 use App\Http\Requests\ReadOneToManyRequest;
@@ -19,16 +20,15 @@ class PenjualanController extends Controller
         $perPage = $request->input('perPage', 10);
         $page = $request->input('page', 1);
 
-        // Subquery untuk ambil DetailID terbaru per PenjualanID
         $subQuery = DetailPenjualan::select('PenjualanID', DB::raw('MAX(DetailID) as latest_detail_id'))
             ->groupBy('PenjualanID');
 
-        // Query utama dengan join ke subquery
         $query = DetailPenjualan::query()
             ->joinSub($subQuery, 'latest_details', function ($join) {
                 $join->on('detailpenjualan.DetailID', '=', 'latest_details.latest_detail_id');
             })
-            ->with(['penjualan.pelanggan', 'user', 'produk']);
+            ->with(['penjualan.pelanggan', 'user', 'produk'])
+            ->orderBy('detailpenjualan.PenjualanID', 'desc'); // <-- Tambah ini
 
         $penjualan = $query->paginate($perPage, ['*'], 'page', $page);
 
@@ -146,14 +146,31 @@ class PenjualanController extends Controller
                 'PelangganID' => $validated['PelangganID'] ?? 8,
             ]);
 
-            $penjualan->detailPenjualan()->createMany(array_map(function ($detail) {
-                return [
+            foreach ($validated['details'] as $detail) {
+                // Ambil produk dan kunci row untuk update
+                $produk = Produk::where('ProdukID', $detail['ProdukID'])->lockForUpdate()->first();
+
+                if (!$produk) {
+                    throw new \Exception("Produk dengan ID {$detail['ProdukID']} tidak ditemukan.");
+                }
+
+                // Cek stok mencukupi
+                if ($produk->Stok < $detail['JumlahProduk']) {
+                    throw new \Exception("Stok {$produk->NamaProduk} tidak mencukupi.");
+                }
+
+                // Kurangi stok
+                $produk->Stok -= $detail['JumlahProduk'];
+                $produk->save();
+
+                // Buat detail penjualan
+                $penjualan->detailPenjualan()->create([
                     'ProdukID' => $detail['ProdukID'],
                     'JumlahProduk' => $detail['JumlahProduk'],
                     'Subtotal' => $detail['Subtotal'],
                     'UserID' => auth()->id(),
-                ];
-            }, $validated['details']));
+                ]);
+            }
 
             DB::commit();
 

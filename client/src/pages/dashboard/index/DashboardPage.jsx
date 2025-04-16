@@ -3,6 +3,7 @@ import product from '../../../assets/product.svg';
 import cart from '../../../assets/cart.svg';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import formatDate from '../../../helper/formatDate'; // Tambahkan di bagian atas file
 
 function DashboardPage() {
     const [produk, setProduk] = useState([]);
@@ -87,26 +88,29 @@ function DashboardPage() {
                             <thead className="border-b-2 text-left bg-moca1 shadow-2xl">
                                 <tr>
                                     <th className="text-moca3 p-2 border-r-2">ID</th>
-                                    <th className="text-moca3 p-2">TANGGAL PENJUALAN</th>
-                                    <th className="text-moca3 p-2">TOTAL HARGA</th>
-                                    <th className="text-moca3 p-2">PELANGGAN ID</th>
+                                    <th className="text-moca3 p-2">Nama Pelanggan</th>
+                                    <th className="text-moca3 p-2">Total</th>
+                                    <th className="text-moca3 p-2">Kasir</th>
+                                    <th className="text-moca3 p-2">Terakhir Diupdate</th>
+                                    <th className="text-moca3 p-2">Dibuat Pada</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {[1, 2, 3, 4, 5].map((id) => {
-                                    return (
-                                        <tr
-                                            key={id}
-                                            className={id % 2 === 0 ? 'bg-moca3' : ''}>
-                                            <td className="pl-2 border-r-2">{id}</td>
-                                            <td className="pl-2">asd</td>
-                                            <td className="pl-2">asd</td>
-                                            <td className="pl-2">asd</td>
-                                        </tr>
-                                    );
-                                })}
+                                {penjualan.map((history) => (
+                                    <tr
+                                        key={history.PenjualanID}
+                                        className={history.PenjualanID % 2 === 0 ? 'bg-moca3' : ''}>
+                                        {console.log(history)}
+                                        <td className="pl-2 border-r-2">{history.PenjualanID}</td>
+                                        <td className="pl-2">{history.pelanggan?.NamaPelanggan || 'Anonim'}</td>
+                                        <td className="pl-2">Rp{parseInt(history?.penjualan?.TotalHarga).toLocaleString('id-ID')}</td>
+                                        <td className="pl-2">{history.user?.name || '-'}</td>
+                                        <td className="pl-2">{formatDate(history.updated_at)}</td>
+                                        <td className="pl-2">{formatDate(history.created_at)}</td>
+                                    </tr>
+                                ))}
                             </tbody>
-                        </table>
+                        </table>{' '}
                     </div>
                 </div>
             </div>

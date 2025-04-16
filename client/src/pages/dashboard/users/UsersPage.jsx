@@ -3,88 +3,96 @@ import InputComponents from '../../../components/InputComponents';
 import axios from 'axios';
 import reset from '../../../assets/reset.svg';
 
-function PelangganPage() {
+function UsersPage() {
     const [isSubmitLoading, setIsSubmitLoading] = useState(false);
-    const [refreshPelangganData, setRefreshPelangganData] = useState(false);
+    const [refreshUsersData, setRefreshUsersData] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
     const [searchValue, setSearchValue] = useState('');
-    const [pelangganData, setPelangganData] = useState([]);
-    const [insertPelanggan, setInsertPelanggan] = useState({
-        NamaPelanggan: '',
-        Alamat: '',
-        NomorTelepon: '',
+    const [usersData, setUsersData] = useState([]);
+    const [insertUser, setInsertUser] = useState({
+        name: '',
+        email: '',
+        password: '',
+        role: 'user',
     });
-    const [editPelanggan, setEditPelanggan] = useState({
-        PelangganID: '',
-        NamaPelanggan: '',
-        Alamat: '',
-        NomorTelepon: '',
+    const [editUser, setEditUser] = useState({
+        id: '',
+        name: '',
+        email: '',
+        role: '',
     });
 
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await axios.get(`${import.meta.env.VITE_API_URL}/pelanggan/showall`, {
+                const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/showall`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`,
                     },
                 });
-                setPelangganData(response.data.data);
+                setUsersData(response.data.data);
             } catch (error) {
                 if (error.message) console.log(error.message);
             }
         }
         fetchData();
-    }, [refreshPelangganData]);
+    }, [refreshUsersData]);
 
     useEffect(() => {
-        if (selectedId !== null) {
-            const selectedPelanggan = pelangganData.find((p) => p.PelangganID === selectedId);
-            if (selectedPelanggan) {
-                setEditPelanggan({
-                    PelangganID: selectedPelanggan.PelangganID,
-                    NamaPelanggan: selectedPelanggan.NamaPelanggan,
-                    Alamat: selectedPelanggan.Alamat,
-                    NomorTelepon: selectedPelanggan.NomorTelepon,
+        if (selectedId !== null && selectedId !== 'new') {
+            const selectedUser = usersData.find((u) => u.id === selectedId);
+            if (selectedUser) {
+                setEditUser({
+                    id: selectedUser.id,
+                    name: selectedUser.name,
+                    email: selectedUser.email,
+                    role: selectedUser.role,
                 });
             }
         }
-    }, [selectedId, pelangganData]);
+    }, [selectedId, usersData]);
 
     const handleHardClick = (id) => {
         setSelectedId(id === selectedId ? null : id);
     };
+
     function handleNewClick() {
         setSelectedId(selectedId === 'new' ? null : 'new');
     }
 
     function handleChanges(e) {
         const { name, value } = e.target;
-        setInsertPelanggan({ ...insertPelanggan, [name]: value });
+        setInsertUser({ ...insertUser, [name]: value });
     }
+
     async function handleSubmit(e) {
         e.preventDefault();
         try {
             setIsSubmitLoading(true);
-            if (insertPelanggan.NamaPelanggan == '' || insertPelanggan.Alamat == '' || insertPelanggan.NomorTelepon == '') {
+            if (!insertUser.name || !insertUser.email || !insertUser.password) {
                 window.alert('Semua Kolom Wajib Diisi');
                 setIsSubmitLoading(false);
                 return;
             }
-            await axios.post(`${import.meta.env.VITE_API_URL}/pelanggan/store`, insertPelanggan, {
+
+            await axios.post(`${import.meta.env.VITE_API_URL}/users/register`, insertUser, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
             });
-            setIsSubmitLoading(false);
-            setInsertPelanggan({
-                NamaPelanggan: '',
-                Alamat: '',
-                NomorTelepon: '',
+
+            setInsertUser({
+                name: '',
+                email: '',
+                password: '',
+                role: 'user',
             });
-            setRefreshPelangganData(!refreshPelangganData);
+            setRefreshUsersData(!refreshUsersData);
         } catch (error) {
-            if (error.message) console.log(error.message);
+            const errorMessage = error.response?.data?.message;
+            alert('Error: ' + `${errorMessage}` || `${error.message}`);
+        } finally {
+            setIsSubmitLoading(false);
         }
     }
 
@@ -92,49 +100,50 @@ function PelangganPage() {
         e.preventDefault();
         try {
             setIsSubmitLoading(true);
-            axios.put(`${import.meta.env.VITE_API_URL}/pelanggan/update`, editPelanggan, {
+            await axios.put(`${import.meta.env.VITE_API_URL}/users/edituser`, editUser, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
             });
-            setIsSubmitLoading(false);
-            setRefreshPelangganData(!refreshPelangganData);
+            setRefreshUsersData(!refreshUsersData);
         } catch (error) {
-            if (error.message) console.log(error.message);
+            console.error('Error:', error.response?.data?.message || error.message);
+        } finally {
+            setIsSubmitLoading(false);
         }
     }
 
     async function handleDelete(e) {
         e.preventDefault();
         try {
-            axios.delete(`${import.meta.env.VITE_API_URL}/pelanggan/delete`, {
+            if (!window.confirm('Hapus user ini?')) return;
+
+            await axios.delete(`${import.meta.env.VITE_API_URL}/users/delete`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
-                data: { PelangganID: selectedId },
+                data: { id: selectedId },
             });
-            setRefreshPelangganData(!refreshPelangganData);
+
+            setRefreshUsersData(!refreshUsersData);
             setSelectedId(null);
         } catch (error) {
-            if (error.message) console.log(error);
+            console.error('Error:', error.response?.data?.message || error.message);
         }
     }
 
-    async function handleSearchPelanggan(e) {
+    async function handleSearchUsers(e) {
         e.preventDefault();
         try {
-            const response = await axios.post(
-                `${import.meta.env.VITE_API_URL}/pelanggan/showone`,
-                { NamaPelanggan: `${searchValue}` },
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    },
-                }
-            );
-            setPelangganData(response.data.data);
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/showone`, {
+                params: { name: searchValue },
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+            setUsersData(response.data.data);
         } catch (error) {
-            if (error.message) console.log(error.message);
+            console.error('Error:', error.response?.data?.message || error.message);
         }
     }
 
@@ -152,7 +161,7 @@ function PelangganPage() {
                         </div>
                         <div className="w-10 ">
                             <button
-                                onClick={() => setRefreshPelangganData(!refreshPelangganData)}
+                                onClick={() => setRefreshUsersData(!refreshUsersData)}
                                 className="w-full h-full flex justify-center items-center bg-moca3 rounded-full text-moca1 ring-2 ring-moca2 text-center cursor-pointer transition-all duration-100 hover:ring-2 hover:ring-moca1">
                                 <img
                                     className="w-5"
@@ -170,7 +179,7 @@ function PelangganPage() {
                         </div>
                         <div className="w-10 ">
                             <button
-                                onClick={handleSearchPelanggan}
+                                onClick={handleSearchUsers}
                                 className="w-full h-full bg-moca3 rounded-full text-moca1 ring-2 ring-moca2 text-center cursor-pointer transition-all duration-100 hover:ring-2 hover:ring-moca1">
                                 {'->'}
                             </button>
@@ -182,73 +191,76 @@ function PelangganPage() {
                                 <thead className="border-b-2">
                                     <tr className="text-left">
                                         <th className="p-2 border-r-2">ID</th>
-                                        <th className="p-2">Nama Pelanggan</th>
-                                        <th className="p-2">Alamat</th>
-                                        <th className="p-2">Nomor Telepon</th>
+                                        <th className="p-2">Nama</th>
+                                        <th className="p-2">Email</th>
+                                        <th className="p-2">Role</th>
                                         <th className="p-2">Dibuat Pada</th>
                                         <th className="p-2">Terakhir Diupdate</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {pelangganData.map((pelanggan) => {
-                                        return (
-                                            <tr
-                                                key={pelanggan.PelangganID}
-                                                onClick={() => handleHardClick(pelanggan.PelangganID)}
-                                                className={`hover:bg-moca3 cursor-grab transition-all duration-100 ${selectedId === pelanggan.PelangganID ? 'bg-moca3' : ''}`}>
-                                                <td className="p-2 border-r-2">{pelanggan.PelangganID}</td>
-                                                <td className="p-2">{pelanggan.NamaPelanggan}</td>
-                                                <td className="p-2">{pelanggan.Alamat}</td>
-                                                <td className="p-2">{pelanggan.NomorTelepon}</td>
-                                                <td className="p-2">
-                                                    {new Date(pelanggan.created_at).toLocaleString('id-ID', {
-                                                        hour12: false,
-                                                    })}
-                                                </td>
-                                                <td className="p-2">
-                                                    {new Date(pelanggan.updated_at).toLocaleString('id-ID', {
-                                                        hour12: false,
-                                                    })}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
+                                    {usersData.map((user) => (
+                                        <tr
+                                            key={user.id}
+                                            onClick={() => handleHardClick(user.id)}
+                                            className={`hover:bg-moca3 cursor-grab transition-all duration-100 ${selectedId === user.id ? 'bg-moca3' : ''}`}>
+                                            <td className="p-2 border-r-2">{user.id}</td>
+                                            <td className="p-2">{user.name}</td>
+                                            <td className="p-2">{user.email}</td>
+                                            <td className="p-2">{user.role}</td>
+                                            <td className="p-2">
+                                                {new Date(user.created_at).toLocaleString('id-ID', {
+                                                    hour12: false,
+                                                })}
+                                            </td>
+                                            <td className="p-2">
+                                                {new Date(user.updated_at).toLocaleString('id-ID', {
+                                                    hour12: false,
+                                                })}
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
-                            </table>{' '}
-                            <div className="flex items-center justify-center p-2">
-                                <div className="p-2">{'<'}</div>
-                                <div className="border p-1 rounded-full w-7 h-7 flex justify-center items-center">1</div>
-                                <div className="p-2">{'>'}</div>
-                            </div>
+                            </table>
                         </div>
                     </div>
                 </div>
-                {selectedId === null ? null : selectedId == 'new' ? (
-                    // form simpan
+
+                {selectedId === null ? null : selectedId === 'new' ? (
                     <div className="w-[25vw] bg-moca2 border-2 flex flex-col justify-center items-center gap-4 p-3 h-[80vh] border-moca1 rounded">
                         <form className="w-full">
                             <div className="w-full p-3 flex flex-col gap-4">
                                 <InputComponents
-                                    name="NamaPelanggan"
+                                    name="name"
                                     type="text"
-                                    value={insertPelanggan.NamaPelanggan}
+                                    value={insertUser.name}
                                     onChange={handleChanges}
-                                    placeholder="Nama Pelanggan"
+                                    placeholder="Nama"
                                 />
                                 <InputComponents
-                                    name="Alamat"
-                                    type="text"
-                                    value={insertPelanggan.Alamat}
+                                    name="email"
+                                    type="email"
+                                    value={insertUser.email}
                                     onChange={handleChanges}
-                                    placeholder="Alamat"
+                                    placeholder="Email"
                                 />
                                 <InputComponents
-                                    name="NomorTelepon"
-                                    type="text"
-                                    value={insertPelanggan.NomorTelepon}
+                                    name="password"
+                                    type="password"
+                                    value={insertUser.password}
                                     onChange={handleChanges}
-                                    placeholder="Nomor Telepon"
+                                    placeholder="Password"
                                 />
+                                <div className="w-full">
+                                    <select
+                                        name="role"
+                                        value={insertUser.role}
+                                        onChange={handleChanges}
+                                        className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="user">User</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
                             </div>
                             <div className="w-full p-4">
                                 <button
@@ -261,38 +273,33 @@ function PelangganPage() {
                         </form>
                     </div>
                 ) : (
-                    // form ubah dan hapus
                     <div className="w-[25vw] bg-moca2 border-2 flex flex-col justify-center items-center gap-4 p-3 h-[80vh] border-moca1 rounded">
                         <form className="w-full">
                             <div className="w-full p-3 flex flex-col gap-4">
                                 <InputComponents
-                                    name="NamaPelanggan"
+                                    name="name"
                                     type="text"
-                                    value={editPelanggan.NamaPelanggan}
-                                    onChange={(e) => setEditPelanggan((prev) => ({ ...prev, NamaPelanggan: e.target.value }))}
-                                    placeholder="Nama Pelanggan"
+                                    value={editUser.name}
+                                    onChange={(e) => setEditUser((prev) => ({ ...prev, name: e.target.value }))}
+                                    placeholder="Nama"
                                 />
                                 <InputComponents
-                                    name="Alamat"
-                                    type="text"
-                                    value={editPelanggan.Alamat}
-                                    onChange={(e) => setEditPelanggan((prev) => ({ ...prev, Alamat: e.target.value }))}
-                                    placeholder="Alamat"
+                                    name="email"
+                                    type="email"
+                                    value={editUser.email}
+                                    onChange={(e) => setEditUser((prev) => ({ ...prev, email: e.target.value }))}
+                                    placeholder="Email"
                                 />
-                                <InputComponents
-                                    name="NomorTelepon"
-                                    type="text"
-                                    value={editPelanggan.NomorTelepon}
-                                    onChange={(e) => setEditPelanggan((prev) => ({ ...prev, NomorTelepon: e.target.value }))}
-                                    placeholder="Nomor Telepon"
-                                />
-                                <InputComponents
-                                    name="Role"
-                                    type="text"
-                                    value={editPelanggan.NomorTelepon}
-                                    onChange={(e) => setEditPelanggan((prev) => ({ ...prev, NomorTelepon: e.target.value }))}
-                                    placeholder="Nomor Telepon"
-                                />
+                                <div className="w-full">
+                                    <select
+                                        name="role"
+                                        value={editUser.role}
+                                        onChange={(e) => setEditUser((prev) => ({ ...prev, role: e.target.value }))}
+                                        className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="user">User</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
                             </div>
                             <div className="w-full p-4 flex gap-3">
                                 <button
@@ -303,8 +310,8 @@ function PelangganPage() {
                                 </button>
                                 <button
                                     onClick={handleDelete}
-                                    className="text-moca1 w-full px-6 py-2 rounded-xl border-b-[2px] border-[#C14600] transition duration-300 hover:bg-[#C14600] hover:text-[#FEF9E1] hover:shadow-lg active:scale-95">
-                                    {isSubmitLoading ? <div className="animate-pulse">Loading...</div> : 'Hapus'}
+                                    className="text-moca1 w-full px-6 py-2 rounded-xl border-b-[2px] border-red-600 transition duration-300 hover:bg-red-600 hover:text-[#FEF9E1] hover:shadow-lg active:scale-95">
+                                    Hapus
                                 </button>
                             </div>
                         </form>
@@ -315,4 +322,4 @@ function PelangganPage() {
     );
 }
 
-export default PelangganPage;
+export default UsersPage;

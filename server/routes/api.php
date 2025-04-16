@@ -18,6 +18,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/showone', [UsersController::class, 'showOne']);
     Route::get('/users/profile', [UsersController::class, 'profile']);
     Route::put('/users/edit', [UsersController::class, 'edit']);
+    Route::put('/users/edituser', [UsersController::class, 'edituser']);
     Route::delete('/users/delete', [UsersController::class, 'delete']);
 
     // produk routes

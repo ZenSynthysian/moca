@@ -13,7 +13,7 @@ function UserLayout() {
             console.error(error);
         }
     }
-
+    console.log(userProfile);
     return (
         <>
             {/* navbar */}
@@ -35,6 +35,12 @@ function UserLayout() {
                         name="Pelanggan"
                         link="pelanggan"
                     />
+                    {userProfile?.role === 'admin' && (
+                        <LinkComponents
+                            name="Accounts"
+                            link="users"
+                        />
+                    )}
                 </div>
                 <div className="flex flex-row gap-10 items-center">
                     <div>{userProfile?.name}</div>

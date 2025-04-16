@@ -6,7 +6,7 @@ import PenjualanPage from '../pages/dashboard/penjualan/PenjualanPage';
 import PelangganPage from '../pages/dashboard/pelanggan/PelangganPage';
 import DashboardPage from '../pages/dashboard/index/DashboardPage';
 import PrivateRoute from '../components/PrivateRoute';
-
+import UsersPage from '../pages/dashboard/users/UsersPage';
 const router = createBrowserRouter([
     {
         path: '/',
@@ -34,6 +34,10 @@ const router = createBrowserRouter([
                     {
                         path: 'pelanggan',
                         element: <PelangganPage />,
+                    },
+                    {
+                        path: 'users',
+                        element: <UsersPage />,
                     },
                 ],
             },
